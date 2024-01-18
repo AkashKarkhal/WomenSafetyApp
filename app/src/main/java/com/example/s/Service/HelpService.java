@@ -1,6 +1,11 @@
 package com.example.s.Service;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,30 +14,30 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.telephony.SmsManager;
-import android.util.Log;
 import android.widget.Toast;
-
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-
+import com.example.s.Activities.MainActivity;
+import com.example.s.R;
 import java.io.IOException;
 import java.util.Date;
 
 public class HelpService extends Service {
-    private LocationManager locationManager;
-    private LocationListener locationListener;
     private double latitude;
     private double longitude;
     MediaRecorder mediaRecorder;
     String outputFile;
-    Handler handler;
    int count =0;
+    private static final int NOTIFICATION_ID = 1;
+    private static final String NOTIFICATION_CHANNEL_ID = "HelpServiceChannel";
+
 
     @Nullable
     @Override
@@ -50,34 +55,39 @@ public class HelpService extends Service {
         super.onCreate();
         Toast.makeText(this, "Service created", Toast.LENGTH_SHORT).show();
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new LocationListener() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // Handle the updated location here
+        // Handle location provider status changes
+        // Handle when the location provider is enabled
+        // Handle when the location provider is disabled
+        LocationListener locationListener = new LocationListener() {
             @Override
-            public void onLocationChanged(Location location) {
+            public void onLocationChanged(@NonNull Location location) {
                 // Handle the updated location here
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
-                Toast.makeText(getApplicationContext(),"Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
-                sendSms();
+                Toast.makeText(getApplicationContext(), "Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
                 // Handle location provider status changes
-                Toast.makeText(getApplicationContext(),"Status changed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Status changed", Toast.LENGTH_SHORT).show();
 
             }
 
             @Override
-            public void onProviderEnabled(String provider) {
+            public void onProviderEnabled(@NonNull String provider) {
                 // Handle when the location provider is enabled
-                Toast.makeText(getApplicationContext(),"Service Enabled by service provider", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Service Enabled by service provider", Toast.LENGTH_SHORT).show();
 
             }
+
             @Override
-            public void onProviderDisabled(String provider) {
+            public void onProviderDisabled(@NonNull String provider) {
                 // Handle when the location provider is disabled
-                Toast.makeText(getApplicationContext(),"Service Desabled by service provider", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Service Desabled by service provider", Toast.LENGTH_SHORT).show();
 
             }
         };
@@ -89,23 +99,39 @@ public class HelpService extends Service {
                latitude = loc.getLatitude();
                longitude = loc.getLongitude();
            }
-            sendSms();
+
+            Toast.makeText(getApplicationContext(),"Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
         }
-        //startRecording();
+
+
+
+        createNotificationChannel();
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setContentTitle("Help Service")
+                .setContentText("Service is running in the background")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentIntent(pendingIntent)
+                .build();
+
+        startForeground(NOTIFICATION_ID, notification);
+
     }
     @Override
     public void onDestroy() {
         super.onDestroy();
-        //stopRecording();
         Toast.makeText(this, "Service distroyed", Toast.LENGTH_SHORT).show();
     }
-    void getLocation() {
-    }
+
     void sendSms(){
         SmsManager smsManager = SmsManager.getDefault();
         String phoneNumber = "8558975929";  // Replace with the recipient's phone number
-        String mapUrl = "https://www.google.com/maps?q=" + latitude + "," + longitude;
-        String message = "I'm in Danger. Please Help Me. My location is : \nLatitude: " + latitude + "\nLongitude: " + longitude+"/nOpen link to know my location :\n"+mapUrl;
+        String mapUrl = "https://www.google.com/maps?q=" + latitude + "%2C" + longitude;
+        String message = "I'm in Danger. Please Help Me. My location is : \nLatitude: " + latitude + "\nLongitude: " + longitude+"\nOpen link to know my location:\n"+mapUrl;
         smsManager.sendTextMessage(phoneNumber, null, message, null, null);
     }
 
@@ -135,6 +161,19 @@ public class HelpService extends Service {
             mediaRecorder.release();
             mediaRecorder = null;
             Toast.makeText(this, "Recording stopped", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "HelpServiceChannel";
+            String description = "Channel for HelpService notifications";
+            int importance = NotificationManager.IMPORTANCE_MAX;
+            @SuppressLint("WrongConstant") NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
