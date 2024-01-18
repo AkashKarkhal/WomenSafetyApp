@@ -24,6 +24,9 @@
         android:theme="@style/Theme.S"
         tools:targetApi="31">
         <activity
+            android:name=".Activities.webviewactivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.settings"
             android:exported="false" />
         <activity

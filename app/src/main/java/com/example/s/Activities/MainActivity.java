@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         updateUi();
 
+        binding.rights.setOnClickListener(view -> {startActivity(new Intent(getApplicationContext(),webviewactivity.class).putExtra("mode","rights"));});
+        binding.more.setOnClickListener(view -> {startActivity(new Intent(getApplicationContext(),webviewactivity.class).putExtra("mode","more"));});
 
         binding.StartButton.setOnClickListener(v -> {
 

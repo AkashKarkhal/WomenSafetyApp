@@ -11,12 +11,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="15dp"
-        android:text="Woman Safety App"
+        android:text="Women Safety App"
         android:textSize="25sp"
         android:textStyle="bold"
         android:background="#FF6F00"
         android:gravity="center"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white"
+        tools:ignore="MissingConstraints" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/StartButton"
@@ -58,10 +59,11 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:textSize="12sp"
+            android:id="@+id/rights"
             android:background="@drawable/buttonback"
             android:layout_marginHorizontal="5dp"
             android:textColor="@color/white"
-            android:text=" Rights" />
+            android:text="@string/rights" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:layout_width="match_parent"
@@ -69,9 +71,10 @@
             android:background="@drawable/buttonback"
             android:layout_weight="1"
             android:textSize="12sp"
+            android:id="@+id/more"
             android:layout_marginHorizontal="5dp"
             android:textColor="@color/white"
-            android:text="More" />
+            android:text="@string/more" />
 
 
     </LinearLayout>
