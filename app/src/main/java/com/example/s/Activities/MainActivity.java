@@ -10,7 +10,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
+
 import com.example.s.Service.HelpService;
+import com.example.s.SharedPrafferences.MySharedPrefference;
 import com.example.s.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,8 +33,10 @@ public class MainActivity extends AppCompatActivity {
                     ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.SEND_SMS, android.Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO}, 1);
-            }
-            else{
+            } else if (MySharedPrefference.isSharedPreferencesEmpty(getApplicationContext())) {
+                Toast.makeText(this, "Please Modify Setting First", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(),settings.class));
+            } else{
                 Intent serviceIntent = new Intent(MainActivity.this, HelpService.class);
                 if (isServiceRunning()) {
                     stopService(serviceIntent);
@@ -41,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
                 updateUi();
             }
         });
+
+        binding.Settingsbtn.setOnClickListener(view -> startActivity(new Intent(getApplicationContext(),settings.class)));
 
     }
     private boolean isServiceRunning() {

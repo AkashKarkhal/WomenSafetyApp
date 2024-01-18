@@ -9,10 +9,9 @@
 
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
 
     <application
         android:allowBackup="true"
@@ -25,6 +24,9 @@
         android:theme="@style/Theme.S"
         tools:targetApi="31">
         <activity
+            android:name=".Activities.settings"
+            android:exported="false" />
+        <activity
             android:name=".Activities.MainActivity"
             android:exported="true">
             <intent-filter>
@@ -34,12 +36,10 @@
             </intent-filter>
         </activity>
 
-
         <service
             android:name=".Service.HelpService"
             android:enabled="true"
             android:exported="false" />
-
     </application>
 
 </manifest>

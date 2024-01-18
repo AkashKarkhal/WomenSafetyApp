@@ -4,8 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#BE7CB342"
+    android:background="@drawable/backgirund"
     tools:context=".Activities.MainActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:text="Woman Safety App"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:background="#FF6F00"
+        android:gravity="center"
+        android:textColor="@color/white"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/StartButton"
@@ -14,7 +25,7 @@
         android:background="@drawable/round"
         android:text="@string/start_nhelp_procedure"
         android:textAllCaps="false"
-        android:textColor="#6D4C41"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -24,12 +35,43 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.appcompat.widget.AppCompatButton
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:id="@+id/Settingsbtn"
+            android:background="@drawable/buttonback"
+            android:layout_marginHorizontal="5dp"
+            android:textColor="@color/white"
+            android:text="Settings" />
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:background="@drawable/buttonback"
+            android:layout_marginHorizontal="5dp"
+            android:textColor="@color/white"
+            android:text=" Rights" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/buttonback"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:layout_marginHorizontal="5dp"
+            android:textColor="@color/white"
+            android:text="More" />
 
 
     </LinearLayout>

@@ -30,6 +30,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import com.example.s.Activities.MainActivity;
 import com.example.s.R;
+import com.example.s.SharedPrafferences.MySharedPrefference;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,6 +48,7 @@ public class HelpService extends Service {
     private SpeechRecognizer speechRecognizer;
     private Intent speechRecognizerIntent;
 
+    String number,codeword;
 
 
     @Nullable
@@ -62,7 +65,9 @@ public class HelpService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Toast.makeText(this, "Service created", Toast.LENGTH_SHORT).show();
+
+        number= MySharedPrefference.readString(getApplicationContext(),"phone","8558975929");
+        codeword=MySharedPrefference.readString(getApplicationContext(),"code","help");
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Handle the updated location here
@@ -75,28 +80,27 @@ public class HelpService extends Service {
                 // Handle the updated location here
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
-                Toast.makeText(getApplicationContext(), "Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
 
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
                 // Handle location provider status changes
-                Toast.makeText(getApplicationContext(), "Status changed", Toast.LENGTH_SHORT).show();
 
             }
 
             @Override
             public void onProviderEnabled(@NonNull String provider) {
                 // Handle when the location provider is enabled
-                Toast.makeText(getApplicationContext(), "Service Enabled by service provider", Toast.LENGTH_SHORT).show();
+
 
             }
 
             @Override
             public void onProviderDisabled(@NonNull String provider) {
                 // Handle when the location provider is disabled
-                Toast.makeText(getApplicationContext(), "Service Desabled by service provider", Toast.LENGTH_SHORT).show();
+
 
             }
         };
@@ -118,7 +122,7 @@ public class HelpService extends Service {
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,  PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Help Service")
@@ -167,6 +171,42 @@ public class HelpService extends Service {
 
             @Override
             public void onError(int i) {
+                String errorMessage;
+                switch (i) {
+                    case SpeechRecognizer.ERROR_AUDIO:
+                        errorMessage = "Audio recording error";
+                        break;
+                    case SpeechRecognizer.ERROR_CLIENT:
+                        errorMessage = "Client-side error";
+                        break;
+                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                        errorMessage = "Insufficient permissions";
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK:
+                        errorMessage = "Network error";
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                        errorMessage = "Network timeout";
+                        break;
+                    case SpeechRecognizer.ERROR_NO_MATCH:
+                        errorMessage = "No match found";
+                        startListening();
+                        break;
+                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                        errorMessage = "Recognition service busy";
+                        break;
+                    case SpeechRecognizer.ERROR_SERVER:
+                        errorMessage = "Server-side error";
+                        break;
+                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                        errorMessage = "Speech timeout";
+                        break;
+                    default:
+                        errorMessage = "Unknown error";
+                        break;
+                }
+
+                Toast.makeText(HelpService.this,errorMessage, Toast.LENGTH_SHORT).show();
 
             }
 
@@ -176,7 +216,7 @@ public class HelpService extends Service {
                 if (matches != null && !matches.isEmpty()) {
                     String recognizedText = matches.get(0);
                     // Check if the recognized text contains your specific voice keyword
-                    if (recognizedText.toLowerCase().contains("help")) {
+                    if (recognizedText.toLowerCase().contains(codeword.toLowerCase())) {
                         // Call a function to perform a specific task
                         performTaskInBackground();
                     }
@@ -203,27 +243,28 @@ public class HelpService extends Service {
     }
 
     private void performTaskInBackground() {
-        Toast.makeText(this, "Sound Matched", Toast.LENGTH_SHORT).show();
-        playSound();
         stopListening();
         sendSms();
         startRecording();
+        playSound();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         stopRecording();
-        stopListening();
-        Toast.makeText(this, "Service distroyed", Toast.LENGTH_SHORT).show();
+        //stopListening();
+        playSound2();
     }
 
     void sendSms(){
+
         SmsManager smsManager = SmsManager.getDefault();
-        String phoneNumber = "8558975929";  // Replace with the recipient's phone number
+        String phoneNumber = number;  // Replace with the recipient's phone number
         String mapUrl = "https://www.google.com/maps?q=" + latitude + "%2C" + longitude;
         String message = "I'm in Danger. Please Help Me. My location is : \nLatitude: " + latitude + "\nLongitude: " + longitude+"\nOpen link to know my location:\n"+mapUrl;
         smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     private void startRecording() {
@@ -236,13 +277,13 @@ public class HelpService extends Service {
         // mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
         mediaRecorder.setOutputFile(outputFile);
 
+
         try {
             mediaRecorder.prepare();
             mediaRecorder.start();
-            Toast.makeText(this, "Recording started", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Recording is Started", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Recording failed", Toast.LENGTH_SHORT).show();
             stopSelf(); // Stop the service if recording fails
         }
     }
@@ -251,7 +292,7 @@ public class HelpService extends Service {
             mediaRecorder.stop();
             mediaRecorder.release();
             mediaRecorder = null;
-            Toast.makeText(this, "Recording stopped", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Recording is Stopped", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -270,7 +311,7 @@ public class HelpService extends Service {
 
     private void startListening() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Started listning", Toast.LENGTH_SHORT).show();
+            stopListening();
             speechRecognizer.startListening(speechRecognizerIntent);
         }
     }
@@ -284,13 +325,14 @@ public class HelpService extends Service {
 
     void playSound() {
         MediaPlayer mediaPlayer=MediaPlayer.create(getApplicationContext(),R.raw.sec);
-        try {
-            mediaPlayer.prepare();
+       if(mediaPlayer!=null){
+           mediaPlayer.start();
+       }
+    }
+    void playSound2() {
+        MediaPlayer mediaPlayer=MediaPlayer.create(getApplicationContext(),R.raw.sec2);
+        if(mediaPlayer!=null){
+            mediaPlayer.start();
         }
-        catch (Exception e){
-            Toast.makeText(this, "error in media preparing", Toast.LENGTH_SHORT).show();
-        }
-        mediaPlayer.start();
-       
     }
 }
