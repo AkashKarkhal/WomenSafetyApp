@@ -13,11 +13,15 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.telephony.SmsManager;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -27,6 +31,7 @@ import androidx.core.content.ContextCompat;
 import com.example.s.Activities.MainActivity;
 import com.example.s.R;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class HelpService extends Service {
@@ -37,6 +42,10 @@ public class HelpService extends Service {
    int count =0;
     private static final int NOTIFICATION_ID = 1;
     private static final String NOTIFICATION_CHANNEL_ID = "HelpServiceChannel";
+
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechRecognizerIntent;
+
 
 
     @Nullable
@@ -120,10 +129,92 @@ public class HelpService extends Service {
 
         startForeground(NOTIFICATION_ID, notification);
 
+
+
+
+        // Initialize SpeechRecognizer
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+
+        // Set up a RecognitionListener to receive the speech recognition results
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+            @Override
+            public void onReadyForSpeech(Bundle bundle) {
+
+            }
+
+            @Override
+            public void onBeginningOfSpeech() {
+
+            }
+
+            @Override
+            public void onRmsChanged(float v) {
+
+            }
+
+            @Override
+            public void onBufferReceived(byte[] bytes) {
+
+            }
+
+            @Override
+            public void onEndOfSpeech() {
+
+            }
+
+            @Override
+            public void onError(int i) {
+
+            }
+
+            @Override
+            public void onResults(Bundle results) {
+                ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (matches != null && !matches.isEmpty()) {
+                    String recognizedText = matches.get(0);
+                    // Check if the recognized text contains your specific voice keyword
+                    if (recognizedText.toLowerCase().contains("help")) {
+                        // Call a function to perform a specific task
+                        performTaskInBackground();
+                    }
+                    else{
+                        startListening();
+                    }
+                }
+            }
+
+            @Override
+            public void onPartialResults(Bundle bundle) {
+
+            }
+
+            @Override
+            public void onEvent(int i, Bundle bundle) {
+
+            }
+
+            // Implement other methods of RecognitionListener as neede
+        });
+        startListening();
+
     }
+
+    private void performTaskInBackground() {
+        Toast.makeText(this, "Sound Matched", Toast.LENGTH_SHORT).show();
+        playSound();
+        stopListening();
+        sendSms();
+        startRecording();
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopRecording();
+        stopListening();
         Toast.makeText(this, "Service distroyed", Toast.LENGTH_SHORT).show();
     }
 
@@ -175,5 +266,31 @@ public class HelpService extends Service {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
+    }
+
+    private void startListening() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Started listning", Toast.LENGTH_SHORT).show();
+            speechRecognizer.startListening(speechRecognizerIntent);
+        }
+    }
+
+    // Add this method to stop listening when needed
+    private void stopListening() {
+        if (speechRecognizer != null) {
+            speechRecognizer.stopListening();
+        }
+    }
+
+    void playSound() {
+        MediaPlayer mediaPlayer=MediaPlayer.create(getApplicationContext(),R.raw.sec);
+        try {
+            mediaPlayer.prepare();
+        }
+        catch (Exception e){
+            Toast.makeText(this, "error in media preparing", Toast.LENGTH_SHORT).show();
+        }
+        mediaPlayer.start();
+       
     }
 }
